@@ -1,106 +1,27 @@
-# meta:
-#   gh-status-handlers: &gh-status-handlers
-#       on_success:
-#         put: gh-status
-#         inputs: [terraform-tomato.git]
-#         params: {state: success}
-#       on_failure:
-#         put: gh-status
-#         inputs: [terraform-tomato.git]
-#         params: {state: failure}
-#       on_error:
-#         put: gh-status
-#         inputs: [terraform-tomato.git]
-#         params: {state: error}
-#       on_abort:
-#         put: gh-status
-#         inputs: [terraform-tomato.git]
-#         # The GH status API doesn't have "abort", so we use the closest state.
-#         params:
-#           state: error
-#           # Reduce noise: do not send a chat message on user-initiated abort.
-#           # FIXME enable next line in PCI-2528
-#           # chat: false
-
-###################################################################################################
-
-# resource_types:
-#   - name: cogito
-#     type: registry-image
-#     check_every: 1h
-#     source:
-#       repository: pix4d/cogito
-#       tag: latest
-#
-#   - name: s3-simple
-#     type: registry-image
-#     check_every: 1h
-#     source:
-#       username: ((docker_cloud_pix4d_user))
-#       password: ((docker_cloud_pix4d_password))
-#       repository: docker.ci.pix4d.com/s3-resource-simple
-#       tag: latest
-
-###################################################################################################
 
 resources:
+  - name: timer.time
+    type: time
+    check_every: 1m
+    source:
+      interval: 5m
+
   - name: pipeline-test.git
     type: git
+    check_every: 1m
     source:
       uri: git@github.com:iAmoric/pipeline-test.git
       branch: ((branch))
       private_key: ((github_ssh_key))
 
-  # - name: doc.s3
-  #   type: s3-simple
-  #   icon: file-document
-  #   source:
-  #     bucket: ci-pix4d-internal-static
-  #     region_name: eu-west-1
-  #     access_key_id: ((concourse_user_access_key))
-  #     secret_access_key: ((concourse_user_secret_key))
-  #     region: eu-west-1
-  #     path: static_html/pci-doc
-  #     sync: false # Disable downloading.
-  #     options:
-  #       - --recursive
-
-  # - name: gh-status
-  #   type: cogito
-  #   check_every: 24h
-  #   source:
-  #     owner: pix4d
-  #     repo: terraform-tomato
-  #     access_token: ((github_repo_status_token))
-  #     gchat_webhook: ((gchat_hook))
-
-###################################################################################################
 
 jobs:
 
   - name: pipeline-test
     plan:
+      - get: timer.time
+        trigger: true
       - get: pipeline-test.git
-        trigger: ((trigger))
-      # - put: gh-status
-      #   inputs: [terraform-tomato.git]
-      #   params: {state: pending}
-      - task: hello-world
+        trigger: false
+      - task: timer
         file: pipeline-test.git/ci/tasks/task.yml
-        # - task: reaper-tests
-        #   file: terraform-tomato.git/ci/reaper/tasks/reaper-tests.yml
-
-  # - name: publish-docs
-  #   <<: *gh-status-handlers
-  #   plan:
-  #     - get: terraform-tomato.git
-  #       trigger: ((trigger))
-  #     - put: gh-status
-  #       inputs: [terraform-tomato.git]
-  #       params: {state: pending}
-  #     - task: publish-docs
-  #       file: terraform-tomato.git/ci/tasks/publish-docs.yml
-  #     - put: doc.s3
-  #       inputs: [tomato-book]
-  #       params:
-  #         dir: tomato-book

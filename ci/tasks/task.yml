@@ -4,6 +4,7 @@ image_resource:
   source:
     repository: busybox
 inputs:
+  - name: timer.time
   - name: pipeline-test.git
 
 
@@ -12,8 +13,6 @@ run:
   args:
   - -c
   - |
-    set -o errexit
-    echo "Hello world"
     cd pipeline-test.git
-    ls
+    date
     cat .git/ref

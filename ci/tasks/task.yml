@@ -14,5 +14,5 @@ run:
   - -c
   - |
     set -o errexit
-    ls
+    echo $(ls)
     echo "Hello world"

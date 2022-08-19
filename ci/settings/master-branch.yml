@@ -1,4 +1,3 @@
-project: terraform-tomato
+project: test-pipeline
 branch: master
-gchat_hook: ((gchat_hook_integration_team))
 trigger: true

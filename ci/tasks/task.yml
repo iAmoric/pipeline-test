@@ -2,8 +2,7 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: python
-    tag: 3.8
+    repository: busybox
 inputs:
   - name: pipeline-test.git
 

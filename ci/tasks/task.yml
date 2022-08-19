@@ -13,6 +13,7 @@ run:
   - -c
   - |
     set -o errexit
-    echo $(ls)
     echo "Hello world"
-    echo $(cat .git/ref)
+    cd pipeline-test.git
+    ls
+    cat .git/ref
